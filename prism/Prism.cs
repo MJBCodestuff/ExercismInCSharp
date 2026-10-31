@@ -4,48 +4,58 @@ public static class Prism
 
     public readonly record struct PrismInfo(int Id, double X, double Y, double Angle);
 
-    public static double toRad(double angle)
+    public static double ToRad(double angle)
     {
         return angle * Math.PI / 180;
     }
-    private record MinMax()
-    {
-        public double maxX { get; set; } = 1;
-        public double maxY { get; set; } = 1;
-        public double minX { get; set; } = -1;
-        public double minY { get; set; } = -1;
-    }
+    
     public static int[] FindSequence(LaserInfo laser, PrismInfo[] prisms)
     {
         (double, double) currentPosition = (laser.X, laser.Y);
         double currentAngle = laser.Angle;
-        var minmax = new MinMax();
         List<int> sequence = [];
-        int safetyMarginForFloatMath = 1;
-        foreach (var prism in prisms)
+        const double epsilon = 0.01;
+        while (true)
         {
-            if ( minmax.maxX <  prism.X ) minmax.maxX = prism.X + safetyMarginForFloatMath;
-            if ( minmax.maxY <  prism.Y ) minmax.maxY = prism.Y + safetyMarginForFloatMath;
-            if ( minmax.minX > prism.X ) minmax.minX = prism.X - safetyMarginForFloatMath;
-            if ( minmax.minY > prism.Y ) minmax.minY = prism.Y - safetyMarginForFloatMath;
-        }
+            double currentAngleRad = ToRad(currentAngle);
+            double smallestDistance =  double.MaxValue;
+            int closestPrismId = -1;
 
-        double epsilon = 0.001;
-        while (currentPosition.Item1 <= minmax.maxX && currentPosition.Item2 <= minmax.maxY
-               && currentPosition.Item1 >= minmax.minX && currentPosition.Item2 >= minmax.minY)
-        {
-            currentPosition.Item1 += Math.Cos(toRad(currentAngle))*0.01;
-            currentPosition.Item2 += Math.Sin(toRad(currentAngle))*0.01;
             foreach (var prism in prisms)
             {
-                if (Math.Abs(prism.X - currentPosition.Item1) < epsilon 
-                    && Math.Abs(prism.Y - currentPosition.Item2) < epsilon)
+                double deltaX = prism.X - currentPosition.Item1;
+                double deltaY = prism.Y - currentPosition.Item2;
+
+                double directionVectorX = Math.Cos(currentAngleRad);
+                double directionVectorY = Math.Sin(currentAngleRad);
+
+                bool aligned = Math.Abs(deltaX * directionVectorY - deltaY * directionVectorX) < epsilon;
+                if (aligned)
                 {
-                    sequence.Add(prism.Id);
-                    currentAngle += prism.Angle;
+                    double distance = deltaX * directionVectorX + deltaY * directionVectorY;
+
+                    if (distance > epsilon && distance < smallestDistance)
+                    {
+                        smallestDistance = distance;
+                        closestPrismId = prism.Id;
+                    }
                 }
             }
+
+            if (closestPrismId == -1)
+            {
+                break; // no aligned Prism found
+            }
+            
+            sequence.Add(closestPrismId);
+            var chosenPrism = (from prism in prisms where prism.Id == closestPrismId select prism).First();
+            currentPosition = (chosenPrism.X, chosenPrism.Y);
+            currentAngle += chosenPrism.Angle;
+            
         }
+        
+        
+        
         return sequence.ToArray();
         
     }
