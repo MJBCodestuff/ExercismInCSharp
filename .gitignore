@@ -1,0 +1,15 @@
+#build files
+bin/
+obj/
+*.user
+*lock.json
+*.csproj
+
+
+#exercism files
+.exercism/
+
+#intellij files
+.idea/
+.editorconfig
+
