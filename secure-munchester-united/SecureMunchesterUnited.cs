@@ -6,7 +6,7 @@ public class SecurityPassMaker
         {
             if (support.GetType() == typeof(Security))
             {
-                return support.Title + " Priority Personnel";
+                return $"{support.Title} Priority Personnel";
             }
             return support.Title;
         }
