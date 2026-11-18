@@ -16,24 +16,29 @@ public class RemoteControlCar
 
     public void SetSponsors(params string[] sponsors)
     {
-        throw new NotImplementedException("Please implement the RemoteControlCar.SetSponsors() method");
+        this.sponsors = sponsors;
     }
 
-    public string DisplaySponsor(int sponsorNum)
-    {
-        throw new NotImplementedException("Please implement the RemoteControlCar.DisplaySponsor() method");
-    }
+    public string DisplaySponsor(int sponsorNum) => this.sponsors[sponsorNum];
 
     public bool GetTelemetryData(ref int serialNum,
         out int batteryPercentage, out int distanceDrivenInMeters)
     {
-        throw new NotImplementedException("Please implement the RemoteControlCar.GetTelemetryData() method");
+        if (serialNum < this.latestSerialNum)
+        {
+            serialNum = this.latestSerialNum;
+            batteryPercentage = -1;
+            distanceDrivenInMeters = -1;
+            return false;
+        }
+
+        this.latestSerialNum = serialNum;
+        batteryPercentage = this.batteryPercentage;
+        distanceDrivenInMeters = this.distanceDrivenInMeters;
+        return true;
     }
 
-    public static RemoteControlCar Buy()
-    {
-        return new RemoteControlCar();
-    }
+    public static RemoteControlCar Buy() => new();
 }
 
 public class TelemetryClient
@@ -47,6 +52,13 @@ public class TelemetryClient
 
     public string GetBatteryUsagePerMeter(int serialNum)
     {
-        throw new NotImplementedException("Please implement the TelemetryClient.GetBatteryUsagePerMeter() method");
+        bool successful =
+            car.GetTelemetryData(ref serialNum, out int batteryPercentage, out int distanceDrivenInMeters);
+        if (!successful || distanceDrivenInMeters == 0)
+        {
+            return "no data";
+        }
+
+        return $"usage-per-meter={(100 - batteryPercentage)/distanceDrivenInMeters}";
     }
 }
