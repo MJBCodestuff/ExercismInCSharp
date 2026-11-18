@@ -9,6 +9,18 @@ public class FacialFeatures
         PhiltrumWidth = philtrumWidth;
     }
     // TODO: implement equality and GetHashCode() methods
+    public override bool Equals(object? o)
+    {
+        if (o == null || o.GetType() != typeof(FacialFeatures)) return false;
+        FacialFeatures other = (FacialFeatures)o;
+        return this.EyeColor == other.EyeColor && this.PhiltrumWidth == other.PhiltrumWidth;
+
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(EyeColor, PhiltrumWidth);
+    }
 }
 
 public class Identity
@@ -21,33 +33,48 @@ public class Identity
         Email = email;
         FacialFeatures = facialFeatures;
     }
-    // TODO: implement equality and GetHashCode() methods
+
+    public override bool Equals(object? o)
+    {
+        if (o == null || o.GetType() != typeof(Identity)) return false;
+        Identity other = (Identity)o;
+        return this.Email == other.Email && this.FacialFeatures.Equals(other.FacialFeatures);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Email, FacialFeatures);
+    }
 }
 
 public class Authenticator
 {
+    private HashSet<Identity> registered = [];
     public static bool AreSameFace(FacialFeatures faceA, FacialFeatures faceB)
     {
-        throw new NotImplementedException("Please implement the (static) Authenticator.AreSameFace() method");
+        return faceA.Equals(faceB);
     }
 
     public bool IsAdmin(Identity identity)
-    {
-        throw new NotImplementedException("Please implement the Authenticator.IsAdmin() method");
-    }
+        => identity.Equals(new Identity("admin@exerc.ism", new FacialFeatures("green", 0.9m)));
 
     public bool Register(Identity identity)
     {
-        throw new NotImplementedException("Please implement the Authenticator.Register() method");
+        if (IsRegistered(identity))
+        {
+            return false;
+        }
+        this.registered.Add(identity);
+        return true;
     }
 
     public bool IsRegistered(Identity identity)
     {
-        throw new NotImplementedException("Please implement the Authenticator.IsRegistered() method");
+        return this.registered.Any(id => id.Equals(identity));
     }
 
     public static bool AreSameObject(Identity identityA, Identity identityB)
     {
-        throw new NotImplementedException("Please implement the Authenticator.AreSameObject() method");
+        return ReferenceEquals(identityA, identityB);
     }
 }
