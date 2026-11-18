@@ -1,27 +1,28 @@
+using System.Text.RegularExpressions;
+
 public class LogParser
 {
     public bool IsValidLine(string text)
-    {
-        throw new NotImplementedException($"Please implement the LogParser.IsValidLine() method");
-    }
+        => Regex.IsMatch(text, @"^\[TRC]|^\[DBG]|^\[INF]|^\[WRN]|^\[ERR]|^\[FTL]");
+
 
     public string[] SplitLogLine(string text)
-    {
-        throw new NotImplementedException($"Please implement the LogParser.SplitLogLine() method");
-    }
+        => Regex.Replace(text, "(<[\\^\\*=-]+>)", ";").Split(";");
 
     public int CountQuotedPasswords(string lines)
-    {
-        throw new NotImplementedException($"Please implement the LogParser.CountQuotedPasswords() method");
-    }
+        => (from line in lines.Split("\n")
+            where Regex.IsMatch(line, "\".*password.*\"", RegexOptions.IgnoreCase)
+            select 1).Sum();
 
     public string RemoveEndOfLineText(string line)
-    {
-        throw new NotImplementedException($"Please implement the LogParser.RemoveEndOfLineText() method");
-    }
+        => Regex.Replace(line, "(end-of-line\\d*)", "");
 
     public string[] ListLinesWithPasswords(string[] lines)
-    {
-        throw new NotImplementedException($"Please implement the LogParser.ListLinesWithPasswords() method");
-    }
+        =>
+        [
+            .. from line in lines
+            select Regex.IsMatch(line, "(password\\S+)", RegexOptions.IgnoreCase)
+                ? $"{Regex.Match(line, "(password\\S+)", RegexOptions.IgnoreCase)}: {line}"
+                : $"--------: {line}"
+        ];
 }
